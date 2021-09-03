@@ -1,7 +1,7 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
     entry_point, coin, to_binary, Addr, BankMsg, Binary, Decimal, Deps, DepsMut, DistributionMsg, Env,
-    MessageInfo, QuerierWrapper, Response, StakingMsg, StdError, StdResult, Uint128, WasmMsg,
+    MessageInfo, QuerierWrapper, Response, StakingMsg, StdError, StdResult, Uint128, WasmMsg, Timestamp, WasmQuery
 };
 
 use cw2::set_contract_version;
@@ -27,7 +27,8 @@ pub fn instantiate(
 
     let data = StratInfo {
         start_time: msg.start_time,
-        period: msg.period
+        period: msg.period,
+        terrand_contract_address: deps.api.addr_canonicalize(&msg.terrand_contract_address)?,
     };
     STRATEGY.save(deps.storage, &data)?;
 
@@ -63,9 +64,27 @@ fn assert_interval(supply: &Supply, bonded: Uint128) -> Result<(), ContractError
 
 pub fn award(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     // assert last interval is over
+    // if env.block.time > Timestamp::from_seconds(state.block_time_play) {
 
+    //}
+    // Load state
+    let mut state = read_state(deps.storage)?;
     // draw call to random number generator
+    let msg = terrand::msg::QueryMsg::GetRandomness { round: next_round };
+    let terrand_human = deps.api.addr_humanize(&state.terrand_contract_address)?;
+    let wasm = WasmQuery::Smart {
+        contract_addr: terrand_human.to_string(),
+        msg: to_binary(&msg)?,
+    };
+    let res: terrand::msg::GetRandomResponse = deps.querier.query(&wasm.into())?;
+    let randomness_hash = hex::encode(res.randomness.as_slice());
 
+    let n = randomness_hash
+        .char_indices()
+        .rev()
+        .nth(state.combination_len as usize - 1)
+        .map(|(i, _)| i)
+        .unwrap();
     // load balance array
 
     // use random number to find winner from stored array of balances
