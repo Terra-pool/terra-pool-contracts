@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, coin, to_binary, Addr, BankMsg, Binary, Decimal, Deps, DepsMut, DistributionMsg, Env,
+    entry_point, coin, to_binary, Addr, BankMsg, Binary, Decimal, Deps, DepsMut, DistributionMsg, Env, CanonicalAddr,
     MessageInfo, QuerierWrapper, Response, StakingMsg, StdError, StdResult, Uint128, WasmMsg, Timestamp, WasmQuery
 };
 
@@ -25,12 +25,12 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-    let data = StratInfo {
+    let state = StratInfo {
         start_time: msg.start_time,
         period: msg.period,
         terrand_contract_address: deps.api.addr_canonicalize(&msg.terrand_contract_address)?,
     };
-    STRATEGY.save(deps.storage, &data)?;
+    STRATEGY.save(deps.storage, &state)?;
 
     Ok(Response::default())
 }
@@ -44,9 +44,9 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Award {} => award(deps, env, info),
-        ExecuteMsg::BeforeTokenTransfer { amount } => before_token_transfer(deps, env, info, amount),
-        ExecuteMsg::BeforeMint {} => before_mint(deps, env, info),
-        ExecuteMsg::BeforeBurn {} => before_burn(deps, env, info),
+        ExecuteMsg::BeforeTokenTransfer { from, to, amount } => before_token_transfer(deps, env, info, from, to, amount),
+        ExecuteMsg::BeforeMint { from, to, amount } => before_mint(deps, env, info, from, to, amount),
+        ExecuteMsg::BeforeBurn { from, to, amount } => before_burn(deps, env, info, from, to, amount)
     }
 }
 
@@ -102,15 +102,15 @@ pub fn award(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
     Ok(res)
 }
 
-pub fn before_token_transfer(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn before_token_transfer(deps: DepsMut, env: Env, info: MessageInfo, from: Addr, to: Addr, amount: Uint128) -> Result<Response, ContractError> {
 
 }
 
-pub fn before_mint(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn before_mint(deps: DepsMut, env: Env, info: MessageInfo, from: Addr, to: Addr, amount: Uint128) -> Result<Response, ContractError> {
 
 }
 
-pub fn before_burn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn before_burn(deps: DepsMut, env: Env, info: MessageInfo, from: Addr, to: Addr, amount: Uint128) -> Result<Response, ContractError> {
 
 }
 

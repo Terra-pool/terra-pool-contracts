@@ -2,7 +2,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{Addr, Decimal, Uint128, Timestamp, CanonicalAddr};
-use cw0::Duration;
 use cw_storage_plus::Item;
 
 /// strategy info
